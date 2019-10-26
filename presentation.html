@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>G. Maggio | LD 2019</title>
+    <link rel="stylesheet" href="./css/reveal.css" />
+    <link rel="stylesheet" href="./css/theme/nord.css" id="theme" />
+    <link rel="stylesheet" href="./css/highlight/zenburn.css" />
+    <link rel="stylesheet" href="./css/print/paper.css" type="text/css" media="print" />
+
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides"><section  data-markdown><script type="text/template">
+
+# Benvenuti
+
+_Anche se alla fine siete qui già da un po'..._ <!-- .element: class="fragment" -->
+
+<p style="position:absolute; bottom:-85%; left:80%; display:block; width:85%!important; height:35%!important; border:none; outline:none; background: url(images/bannerino.png) 0 0 no-repeat; background-size: 40%"></p>
+</script></section><section  data-markdown><script type="text/template">
+
+<!-- .slide: data-transition="fade" -->
+###### micro presentazione
+
+```shell
+$ whoami
+```
+</script></section><section ><section data-markdown><script type="text/template">
+
+<!-- .slide: data-transition="slide" -->
+## Qual è il tema di questo talk?
+
+`reverse engineering` <!-- .element: class="fragment" -->
+ 
+In particolar modo quella legata al software con codice sorgente chiuso al pubblico. <!-- .element: class="fragment" -->
+
+A partire da un prodotto finito, si può: <!-- .element: class="fragment" -->
+
+</script></section><section data-markdown><script type="text/template">
+
+* Analizzare l'architettura e l'implementazione;
+* Aggiungere o rimuovere determinate funzionalità; <!-- .element: class="fragment" -->
+* Estendere la compatibilità integrandolo con altri componenti software.<!-- .element: class="fragment" -->
+
+<aside class="notes"><p>Estensione della compatibilità laddove non fosse possibile utilizzare l&#39;implementazione originale come semplice ispirazione per la riscrittura.</p>
+</aside></script></section></section><section ><section data-markdown><script type="text/template">
+
+## Offuscamento del codice
+
+<p class="fragment">Per offuscamento del codice s'intende un'azione fine a rendere più complicato il processo di <i>retro-ingegneria</i> cercando, principalmente, di garantire la proprietà intelettuale di un prodotto software.</p>
+
+</script></section><section data-markdown><script type="text/template">
+
+![uaglio](/images/bellStuSoftware.png)
+
+</script></section><section data-markdown><script type="text/template">
+
+Questa tecnica, oltre a garantire la *proprietà intellettuale*, può:
+
+
+<p class="fragment">• <b>Aumentare la sicurezza</b>, rendendo ad esempio complicato l'inserimento di codice malevolo oppure nascondere eventuali falle di sicurezza;</p>
+<p class="fragment">• <b>Velocizzare l'esecuzione</b> rimuovendo codice <i>"inutile"</i>, riducendo la lunghezza dei nomi delle variabili o funzioni arrivando a nomi come <code>a,a0,[...]</code></p>
+
+</script></section></section><section ><section data-markdown><script type="text/template">
+
+## Strumenti per il reverse engineering
+
+<p class="fragment">Effettuare analisi su software scritto con un linguaggio di basso livello è solitamente un task complesso, per questo motivo quando ci affacciamo su questi programmi generalmente possiamo solo affidarci a <code>disassembler</code>.</p>
+
+</script></section><section data-markdown><script type="text/template">
+Per i fan della linea di comando → `radare2`
+
+```bash
+[jertlok@JPC hello]$ r2 hello
+ -- vm is like a small cow in ascii
+[0x00001040]> aaa # Analizza tutto
+[x] Analyze all flags starting with sym. and entry0 (aa)
+[x] Analyze function calls (aac)
+[x] Analyze len bytes of instructions for references (aar)
+[x] Type matching analysis for all functions (aaft)
+[x] Use -AA or aaaa to perform additional experimental analysis.
+[0x00001040]> s main # Vai alla funzione "main"
+[0x00001139]> VV # Visualizza grafico
+```
+</script></section><section data-markdown><script type="text/template">
+
+`VV on radare2`
+
+![radare2](images/radare2.png)
+
+</script></section><section data-markdown><script type="text/template">
+Per i fan dell'interfaccia grafica → `REDasm`
+
+![redasm](images/redasm.gif)
+
+</script></section><section data-markdown><script type="text/template">
+
+Ben diversa è la situazione con software scritto con un linguaggio di alto livello come Java ed il suo `bytecode` è per la maggior parte delle volte riconducibile al codice sorgente.
+
+</script></section><section data-markdown><script type="text/template">
+
+`jd-gui`
+
+![jd-gui](images/jd-gui.png)
+
+</script></section><section data-markdown><script type="text/template">
+
+`Luyten`
+
+![Luyten](images/Luyten.png)
+
+</script></section><section data-markdown><script type="text/template">
+
+Per Android e dunque dex → `jadx-gui`
+
+![jadx-gui](images/jadx-gui.png)
+
+</script></section></section><section ><section data-markdown><script type="text/template">
+
+## Proof of concept
+
+A partire dal Pixel 2 Google ha introdotto un sensore sensibile alla pressione utile ad attivare l'assistente vocale. <!-- .element class="fragment" -->
+
+Purtroppo questa funzionalità non è presente quando si passa alla versione Open Source di Android (AOSP). <!-- .element class="fragment" -->
+
+</script></section><section data-markdown><script type="text/template">
+
+## Come si può procedere?
+
+Uno dei modi più intuitivi è quello di cercare delle stringhe che ci possano portare sulla giusta strada. <!-- .element class="fragment" -->
+
+<p class="fragment">All'interno delle impostazioni del cellulare (in inglese), si possono notare varie voci come ad esempio <code>squeeze</code> e <code>assist gesture</code></p>
+
+</script></section><section data-markdown><script type="text/template">
+
+Siccome si è scelto di partire dalle impostazioni, bisogna prendere in considerazione l'`APK` corrispondente → `SettingsGoogle.apk`
+
+<p class="fragment">Quindi, grazie all'ausilio di <code>jadx</code> procediamo a decompilare l'applicativo</p>
+
+</script></section><section data-markdown><script type="text/template">
+
+Decompilarlo con <code>jadx</code> è semplicissimo in quanto basta aprire il file e la decompilazione avviene in automatico.
+
+Ed ecco che si parte con la ricerca: <!-- .element class="fragment" -->
+
+![squeezeSearch](images/squeezeSearch.png) <!-- .element class="fragment" -->
+
+</script></section><section data-markdown><script type="text/template">
+
+Entrando all'interno della prima classe disponibile si può notare una stringa interessante.
+
+```java
+Secure.putFloat(cResolver, "assist_gesture_sensitivity", [...])
+
+```
+
+</script></section><section data-markdown><script type="text/template">
+
+Fondamentalmente si cerca di seguire una catena di riferimenti fino ad arrivare alle classi che ci interessano e continuare con l'analisi.
+
+<p class="fragment">Ora, grazie alle varie stringhe trovate, ci si può spostare all'interno della <code>SystemUIGoogle</code></p>
+
+</script></section><section data-markdown><script type="text/template">
+
+Effettuando la ricerca, si ottengono i seguenti match:
+
+![squeezeAssist](images/squeezeAssist.png)
+
+</script></section><section data-markdown><script type="text/template">
+
+Apparentemente ci sono dei riferimenti ad `elmyra` e ricercando quest'ultimo elemento si approda su `ElmyraService` con collegamenti ad un metodo `onGestureDetected`:
+
+![onGesture](images/onGesture.png)
+
+</script></section><section data-markdown><script type="text/template">
+
+Chiaramente, per l'analisi, è possibile affidarsi ad altri strumenti per ricercare.
+
+
+</script></section><section data-markdown><script type="text/template">
+
+Solitamente `rg` *(ripgrep)* fa un ottimo lavoro: </p>
+
+![rg](images/rg.png)
+
+</script></section><section data-markdown><script type="text/template">
+
+A questo punto si può pensare di prendere quanto più codice possibile, magari combinando più decompilatori.
+
+Oppure si può pensare di riscriverlo e questo sarebbe un ottimo esercizio. <!-- .element class="fragment" -->
+
+</script></section></section><section  data-markdown><script type="text/template">
+
+# Grazie
+</script></section></div>
+    </div>
+
+    <script src="./js/reveal.js"></script>
+
+    <script>
+      function extend() {
+        var target = {};
+        for (var i = 0; i < arguments.length; i++) {
+          var source = arguments[i];
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              target[key] = source[key];
+            }
+          }
+        }
+        return target;
+      }
+
+      // Optional libraries used to extend on reveal.js
+      var deps = [
+        { src: './plugin/markdown/marked.js', condition: function() { return !!document.querySelector('[data-markdown]'); } },
+        { src: './plugin/markdown/markdown.js', condition: function() { return !!document.querySelector('[data-markdown]'); } },
+        { src: './plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+        { src: './plugin/zoom-js/zoom.js', async: true },
+        { src: './plugin/notes/notes.js', async: true },
+        { src: './plugin/math/math.js', async: true }
+      ];
+
+      // default options to init reveal.js
+      var defaultOptions = {
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        transition: 'default', // none/fade/slide/convex/concave/zoom
+        dependencies: deps
+      };
+
+      // options from URL query string
+      var queryOptions = Reveal.getQueryHash() || {};
+
+      var options = extend(defaultOptions, {"transition":"slide"}, queryOptions);
+    </script>
+
+
+    <script>
+      Reveal.initialize(options);
+    </script>
+  </body>
+</html>
